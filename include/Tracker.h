@@ -7,6 +7,8 @@
 #include "Eigen/Dense"
 #include "geometry_msgs/PoseArray.h"
 
+using namespace Eigen;
+
 class Tracker
 {
 public:
@@ -28,7 +30,7 @@ public:
   /**
    * To select the the convoy leader vehicle by gated nearest neighbor data association
    */
-  VectorXd DataAssociation(const VectorXd &z, const geometry_msgs::PoseArray::ConstPtr& msg);
+  VectorXd DataAssociation(VectorXd &z, const geometry_msgs::PoseArray::ConstPtr& msg);
 
   /**
    * Kalman Filter update and prediction math lives in here.
@@ -40,7 +42,7 @@ private:
   bool is_initialized_;
 
   // previous timestamp
-  long long previous_timestamp_;
+  float previous_timestamp_;
   Eigen::MatrixXd R_lidar_;
   Eigen::MatrixXd H_lidar_;
 };

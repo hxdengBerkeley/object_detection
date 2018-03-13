@@ -1,11 +1,11 @@
 #include "Tracker.h"
+#include "kalman_filter.cpp"
 #include "Eigen/Dense"
 #include <iostream>
 #include "geometry_msgs/PoseArray.h"
 
 using namespace std;
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
+using namespace Eigen;
 using std::vector;
 
 
@@ -48,11 +48,11 @@ Tracker::Tracker()
 Tracker::~Tracker()
 {}
 
-VectorXd DataAssociation(const VectorXd &z, const geometry_msgs::PoseArray::ConstPtr& msg)
+VectorXd Tracker::DataAssociation(VectorXd &z, const geometry_msgs::PoseArray::ConstPtr& msg)
 {
   float distance_sqr = std::numeric_limits<float>::max();
   VectorXd convoy_leader = VectorXd(2);
-  
+  /** 
   for (int col = 0; col < Candidates_List.cols(); ++col){
     float distance_x = Candidates_List(0,col) - z(0);
     float distance_y = Candidates_List(1,col) - z(1);
@@ -63,7 +63,7 @@ VectorXd DataAssociation(const VectorXd &z, const geometry_msgs::PoseArray::Cons
       convoy_leader[1] = Candidates_List(1,col);
       distance_sqr = distance_sqr_this;
     }
-  }
+  }*/
   return convoy_leader;
 }
 
@@ -84,7 +84,7 @@ void Tracker::ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg)
     z << 0, 0;
     z = DataAssociation(z,msg);
     kf_.x_ << z[0], z[1], 0, 0; // x, y, vx, vy
-    previous_timestamp_ = measurement_pack.timestamp_; // set current time stamp
+    previous_timestamp_ = msg->header.stamp.toSec(); // set current time stamp
     // done initializing, no need to predict or update
     is_initialized_ = true;
     return;
@@ -95,8 +95,8 @@ void Tracker::ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg)
    ****************************************************************************/
   
   // compute the time elapsed between the current and previous measurements
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;  //  in seconds
-  previous_timestamp_ = measurement_pack.timestamp_;
+  float dt = (msg->header.stamp.toSec() - previous_timestamp_) / 1000000.0;  //  in seconds
+  previous_timestamp_ = msg->header.stamp.toSec();
 
   float dt_2 = dt * dt;
   float dt_3 = dt_2 * dt;
