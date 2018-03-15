@@ -25,12 +25,12 @@ public:
   /**
    * To Initialize the first frame and then make prediction correction
    */
-  void ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg);
+  void ProcessMeasurement(geometry_msgs::PoseArray& msg);
 
   /**
    * To select the the convoy leader vehicle by gated nearest neighbor data association
    */
-  VectorXd DataAssociation(VectorXd &z, const geometry_msgs::PoseArray::ConstPtr& msg);
+  VectorXd DataAssociation(VectorXd &z, geometry_msgs::PoseArray& msg);
 
   /**
    * Kalman Filter update and prediction math lives in here.

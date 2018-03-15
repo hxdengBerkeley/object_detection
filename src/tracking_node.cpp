@@ -13,26 +13,31 @@ public:
     //Default Constructor
     Leader_Tracker_Sub_Pub()
     {
-        _sub = _nh.subscribe("misc_points", 10, &Leader_Tracker_Sub_Pub::Callback, this);
-        _pub = _nh.advertise<geometry_msgs::PoseStamped>("leader_car", 10);
+        _sub = _nh.subscribe("car_posearr", 10, &Leader_Tracker_Sub_Pub::Callback, this);
+        _pub = _nh.advertise<geometry_msgs::PoseStamped>("leader_car_pose", 10);
     }
 
     // To track leader car and pubnish leader car pose 
-    void Callback(const sensor_msgs::PointCloud2::ConstPtr& msg)
+    void Callback(const geometry_msgs::PoseArray::ConstPtr& msg)
     {
-        //extract the postarr from PointCloud2
-        sensor_msgs::PointCloud2 objpc = *msg;
-        //geometry_msgs::PoseArray posearr_msg;
-        //posearr_msg.header = objpc.header;
-        ROS_INFO("inside callback");     
-
-//        _tracker.ProcessMeasurement(posearr_msg);
-
-        //extract the poseStamped from _tracker._x
-//        geometry_msgs::PoseStamped pose_msg;
-
-        // publish the pose of convoy leader to topid "leader_car"
- //       _pub.publish(pose_msg);
+        geometry_msgs::PoseArray obj_posearr = *msg;
+        int size = obj_posearr.poses.size();
+        if (size == 0)
+        {
+            ROS_INFO("No vehicle detected at this frame\n");
+        }
+        else
+        {
+            _tracker.ProcessMeasurement(obj_posearr);
+            ROS_INFO("Vehicle detected at this frame\n");
+            ROS_INFO("Convoy Leader Position x = %f\n", _tracker.kf_.x_[0]);
+            ROS_INFO("Convoy Leader Position y = %f\n", _tracker.kf_.x_[1]);
+            geometry_msgs::PoseStamped leader_car_pose;
+            leader_car_pose.header = obj_posearr.header;
+            leader_car_pose.pose.position.x = _tracker.kf_.x_[0];
+            leader_car_pose.pose.position.y = _tracker.kf_.x_[1];
+            _pub.publish(leader_car_pose);
+        }
     }
 
 private:

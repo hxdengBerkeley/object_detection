@@ -2,7 +2,9 @@
 #include "kalman_filter.cpp"
 #include "Eigen/Dense"
 #include <iostream>
+#include <stdlib.h>
 #include "geometry_msgs/PoseArray.h"
+#include "geometry_msgs/Point.h"
 
 using namespace std;
 using namespace Eigen;
@@ -48,26 +50,12 @@ Tracker::Tracker()
 Tracker::~Tracker()
 {}
 
-VectorXd Tracker::DataAssociation(VectorXd &z, const geometry_msgs::PoseArray::ConstPtr& msg)
+double euclidean_distance(geometry_msgs::Point& p1, geometry_msgs::Point& p2)
 {
-  float distance_sqr = std::numeric_limits<float>::max();
-  VectorXd convoy_leader = VectorXd(2);
-  /** 
-  for (int col = 0; col < Candidates_List.cols(); ++col){
-    float distance_x = Candidates_List(0,col) - z(0);
-    float distance_y = Candidates_List(1,col) - z(1);
-    float distance_sqr_this = distance_x * distance_x + distance_y * distance_y;
-
-    if ( distance_sqr > distance_sqr_this){
-      convoy_leader[0] = Candidates_List(0,col);
-      convoy_leader[1] = Candidates_List(1,col);
-      distance_sqr = distance_sqr_this;
-    }
-  }*/
-  return convoy_leader;
+  return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
 }
 
-void Tracker::ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg)
+void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
 {
   /*****************************************************************************
    *  Initialization
@@ -80,11 +68,30 @@ void Tracker::ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg)
 
     // we need to select the convoy leader vehicle here
     // we assume that the straight front one is the leader vehicle
-    VectorXd z(2);
-    z << 0, 0;
-    z = DataAssociation(z,msg);
-    kf_.x_ << z[0], z[1], 0, 0; // x, y, vx, vy
-    previous_timestamp_ = msg->header.stamp.toSec(); // set current time stamp
+    geometry_msgs::Point point;
+    point.x = numeric_limits<float>::max();
+    point.y = numeric_limits<float>::max();
+    geometry_msgs::Point origin;
+    origin.x = 0.0;
+    origin.y = 0.0;
+    float distance = euclidean_distance(point,origin);
+    int size = msg.poses.size();
+    for (int i = 0; i < size; ++i)
+    {
+      geometry_msgs::Point car_pose = msg.poses[i].position;
+      if ( euclidean_distance(origin,car_pose) < distance && car_pose.x > 0.0 && abs(car_pose.y) < 6.0)
+      {
+        point = car_pose;
+        distance = euclidean_distance(origin,car_pose);
+      }
+    }
+    // no leader vehicle detected
+    if ( distance > 1000 )
+    {
+      return;
+    }
+    kf_.x_ << point.x, point.y, 0, 0; // x, y, vx, vy
+    previous_timestamp_ = msg.header.stamp.toSec(); // set current time stamp
     // done initializing, no need to predict or update
     is_initialized_ = true;
     return;
@@ -95,8 +102,8 @@ void Tracker::ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg)
    ****************************************************************************/
   
   // compute the time elapsed between the current and previous measurements
-  float dt = (msg->header.stamp.toSec() - previous_timestamp_) / 1000000.0;  //  in seconds
-  previous_timestamp_ = msg->header.stamp.toSec();
+  float dt = (msg.header.stamp.toSec() - previous_timestamp_) / 1000000.0;  //  in seconds
+  previous_timestamp_ = msg.header.stamp.toSec();
 
   float dt_2 = dt * dt;
   float dt_3 = dt_2 * dt;
@@ -127,10 +134,32 @@ void Tracker::ProcessMeasurement(const geometry_msgs::PoseArray::ConstPtr& msg)
   kf_.H_ = H_lidar_;
   kf_.R_ = R_lidar_;
 
-  VectorXd z(2);
-  z << 0, 0;
   // we need to select the convoy leader vehicle here
-  // by gated nearest neighbor data association
-  z = DataAssociation(kf_.x_,msg);
+  // by gated nearest neighbor data association but reasonable
+  geometry_msgs::Point point;
+  point.x = numeric_limits<float>::max();
+  point.y = numeric_limits<float>::max();
+  
+  geometry_msgs::Point car_pred;
+  car_pred.x = kf_.x_[0];
+  car_pred.y = kf_.x_[1];
+  float distance = euclidean_distance(point,car_pred);
+  int size = msg.poses.size();
+  for (int i = 0; i < size; ++i)
+  {
+    geometry_msgs::Point car_pose = msg.poses[i].position;
+    if ( euclidean_distance(car_pred,car_pose) < distance)
+    {
+      point = car_pose;
+      distance = euclidean_distance(car_pred,car_pose);
+    }
+  }
+  // no leader vehicle associated
+  if ( distance > 10 )
+  {
+    return;
+  }
+  VectorXd z(2);
+  z << point.x, point.y;
   kf_.Update(z);
 }
