@@ -79,7 +79,7 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
     for (int i = 0; i < size; ++i)
     {
       geometry_msgs::Point car_pose = msg.poses[i].position;
-      if ( euclidean_distance(origin,car_pose) < distance && car_pose.x > 0.0 && abs(car_pose.y) < 6.0)
+      if ( (car_pose.x > 0.0) && (abs(car_pose.y) < 6.0) && (euclidean_distance(origin,car_pose) < distance))
       {
         point = car_pose;
         distance = euclidean_distance(origin,car_pose);
@@ -150,14 +150,14 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
   for (int i = 0; i < size; ++i)
   {
     geometry_msgs::Point car_pose = msg.poses[i].position;
-    if ( euclidean_distance(car_pred,car_pose) < distance)
+    if ( (car_pose.x > 0.0) && (euclidean_distance(car_pred,car_pose) < distance))
     {
       point = car_pose;
       distance = euclidean_distance(car_pred,car_pose);
     }
   }
   // no leader vehicle associated
-  if ( distance > 10 )
+  if ( distance > 2 )
   {
     ROS_INFO("Convoy leader association failed at this frame\n");
     return;
