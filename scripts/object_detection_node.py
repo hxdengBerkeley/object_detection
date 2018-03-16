@@ -55,7 +55,6 @@ class ObjectDetection(object):
                 car_poses = [np.mean(bbox, axis=0) for indx, bbox in enumerate(bbox_3d) if obj_classified[indx] == 1]
                 car_PoseArray = self.Arr2poseArray(car_poses)
                 car_PoseArray.header = msg.header
-                print(car_PoseArray)
             else:
                 pc_car = pc2.create_cloud(msg.header, fields, [])
                 car_PoseArray = PoseArray()

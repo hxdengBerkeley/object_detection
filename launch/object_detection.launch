@@ -5,6 +5,9 @@
   <node pkg="object_detection" type="object_detection_node.py" name="object_detection_node" output="screen">
   </node>
 
+  <node pkg="object_detection" type="tracking_node" name="tracking_node" output="screen">
+  </node>
+
   <group if="$(arg rviz)">
     <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find object_detection)/rviz_cfg/obj_detect.rviz" />
 

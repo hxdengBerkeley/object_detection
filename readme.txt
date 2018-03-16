@@ -14,7 +14,9 @@ Object detection, tracking, and classification using LiDAR point cloud
 
 object_detection
 +-- include
-|   +-- object_detection (empty)
+|   +-- Eigen
+|   +-- Tracker.h
+|   +-- kalman_filter.h
 +-- launch
 |   +-- object_detection.launch
 +-- rviz_cfg
@@ -28,7 +30,10 @@ object_detection
 |   +-- scan_conversion.py
 |   +-- segmentation.py
 |   +-- trained_classifier_4classes.pkl
-+-- src (empty; c++ goes here)
++-- src
+|   +-- Tracker.cpp
+|   +-- kalman_filter.cpp
+|   +-- tracking_node.cpp
 +-- CMakeLists.txt
 +-- package.xml
 +-- readme.txt (this file)
@@ -66,6 +71,7 @@ $ roslaunch object_detection object_detection.launch
 (This launches three separete programs, which can be run in three separete terminals as follows:
 $ roscore
 $ rosrun object_detection object_detection_node.py
+$ rosrun object_detection tracking_node
 $ rosrun rviz rviz -d ~/catkin_ws/src/object_detection/rviz_cfg/obj_detect.rviz
 )
 
@@ -79,4 +85,3 @@ Note: Please find the links below for ROSBAG with Velodyne LiDAR Data and Camera
       https://velodyne-my.sharepoint.com/:f:/p/algorithmteam/EruWWshc4gtCqxHYCNYy4JEBq3GGg8QM8RpPssV6AbxjsA?e=qrbAeq
       * 2017-10-01-19-54-57_Velodyne-VLP-16-Data.pcap file and _2017-12-12-21-58-53_CESDemo.bag file are VLP-32 bag file.
       * 2017-10-16-13-23-15_Alameda_Marina.pcap file is VLP-16 bag file.
-

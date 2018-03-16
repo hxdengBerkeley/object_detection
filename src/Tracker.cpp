@@ -67,7 +67,7 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
     kf_.x_ << 1, 1, 1, 1;  //avoid no values in x_
 
     // we need to select the convoy leader vehicle here
-    // we assume that the straight front one is the leader vehicle
+    // we assume that the straight front and closed one is the leader vehicle
     geometry_msgs::Point point;
     point.x = numeric_limits<float>::max();
     point.y = numeric_limits<float>::max();
@@ -85,9 +85,11 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
         distance = euclidean_distance(origin,car_pose);
       }
     }
-    // no leader vehicle detected
+
+    // no leader vehicle associated
     if ( distance > 1000 )
     {
+      ROS_INFO("Convoy leader association failed at this frame\n");
       return;
     }
     kf_.x_ << point.x, point.y, 0, 0; // x, y, vx, vy
@@ -102,7 +104,7 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
    ****************************************************************************/
   
   // compute the time elapsed between the current and previous measurements
-  float dt = (msg.header.stamp.toSec() - previous_timestamp_) / 1000000.0;  //  in seconds
+  float dt = msg.header.stamp.toSec() - previous_timestamp_;  //  in seconds
   previous_timestamp_ = msg.header.stamp.toSec();
 
   float dt_2 = dt * dt;
@@ -135,7 +137,7 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
   kf_.R_ = R_lidar_;
 
   // we need to select the convoy leader vehicle here
-  // by gated nearest neighbor data association but reasonable
+  // by gated nearest neighbor data association but reasonable distance to avoid associate other vihicle
   geometry_msgs::Point point;
   point.x = numeric_limits<float>::max();
   point.y = numeric_limits<float>::max();
@@ -157,6 +159,7 @@ void Tracker::ProcessMeasurement(geometry_msgs::PoseArray& msg)
   // no leader vehicle associated
   if ( distance > 10 )
   {
+    ROS_INFO("Convoy leader association failed at this frame\n");
     return;
   }
   VectorXd z(2);

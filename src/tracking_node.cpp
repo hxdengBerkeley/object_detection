@@ -29,9 +29,7 @@ public:
         else
         {
             _tracker.ProcessMeasurement(obj_posearr);
-            ROS_INFO("Vehicle detected at this frame\n");
-            ROS_INFO("Convoy Leader Position x = %f\n", _tracker.kf_.x_[0]);
-            ROS_INFO("Convoy Leader Position y = %f\n", _tracker.kf_.x_[1]);
+            ROS_INFO("Vehicle detected at this frame\nConvoy Leader Position x = %f\nConvoy Leader Position y = %f\n", _tracker.kf_.x_[0],_tracker.kf_.x_[1]);
             geometry_msgs::PoseStamped leader_car_pose;
             leader_car_pose.header = obj_posearr.header;
             leader_car_pose.pose.position.x = _tracker.kf_.x_[0];
