@@ -17,7 +17,7 @@ command-not-found==0.3
 controller-manager==0.13.0
 controller-manager-msgs==0.13.0
 controller-manager-tests==0.13.0
-cryptography==1.2.3
+cryptography==3.2
 cv-bridge==1.12.7
 cycler==0.10.0
 decorator==4.2.1
