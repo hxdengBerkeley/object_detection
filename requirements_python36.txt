@@ -49,7 +49,7 @@ ipython==6.2.1
 ipython-genutils==0.2.0
 ipywidgets==7.1.1
 jedi==0.11.1
-Jinja2==2.10
+Jinja2==2.11.3
 jsk-recognition-utils==1.2.4
 jsk-rqt-plugins==2.1.1
 jsk-rviz-plugins==2.1.1
