@@ -113,7 +113,7 @@ python-systemd==231
 python-utils==2.3.0
 pytz==2018.3
 pyxdg==0.25
-PyYAML==3.12
+PyYAML==5.4
 pyzmq==17.0.0
 qt-dotgraph==0.3.8
 qt-gui==0.3.8
