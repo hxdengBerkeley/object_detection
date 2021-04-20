@@ -93,7 +93,7 @@ pluginlib==1.11.2
 progressbar2==3.35.2
 prompt-toolkit==1.0.15
 ptyprocess==0.5.2
-py==1.5.2
+py==1.10.0
 pyasn1==0.1.9
 pycups==1.9.73
 pycurl==7.43.0
